@@ -1,0 +1,67 @@
+name: 'RugSnare PR diff'
+description: 'Post a human-readable diff of MCP tool contracts (descriptions & schemas) on pull requests, so reviewers see the changed words, not hashes.'
+branding:
+  icon: 'shield'
+  color: 'orange'
+
+inputs:
+  config:
+    description: 'Path to the MCP config file (e.g. .mcp.json), relative to working-directory'
+    required: true
+  working-directory:
+    description: 'Directory containing the config and the committed .rugsnare pin store'
+    required: false
+    default: '.'
+  rugsnare-ref:
+    description: 'Which rugsnare version to run (used when use-workspace is false); pinned to a release tag by default, bump deliberately'
+    required: false
+    default: 'v1.1.0'
+  use-workspace:
+    description: 'Use the rugsnare copy already present in the calling repository (for the rugsnare repo itself); default false = self-checkout'
+    required: false
+    default: 'false'
+  fail-on-drift:
+    description: 'Fail the check when contract drift is found (after posting the comment)'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Self-checkout the rugsnare tool
+      if: ${{ inputs.use-workspace != 'true' }}
+      uses: actions/checkout@v4
+      with:
+        repository: Paraphern/rugsnare
+        ref: ${{ inputs.rugsnare-ref }}
+        path: rugsnare-tool
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Post tool-contract diff comment (self-checkout mode)
+      if: ${{ inputs.use-workspace != 'true' }}
+      env:
+        RUGSNARE_SRC: ${{ github.workspace }}/rugsnare-tool/product/src
+        RUGSNARE_CONFIG: ${{ inputs.config }}
+        RUGSNARE_CWD: ${{ inputs.working-directory }}
+        RUGSNARE_FAIL_ON_DRIFT: ${{ inputs.fail-on-drift }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: node "${{ github.action_path }}/pr-comment.mjs"
+      shell: bash
+
+    - name: Post tool-contract diff comment (workspace mode)
+      if: ${{ inputs.use-workspace == 'true' }}
+      env:
+        RUGSNARE_SRC: ${{ github.workspace }}/product/src
+        RUGSNARE_CONFIG: ${{ inputs.config }}
+        RUGSNARE_CWD: ${{ inputs.working-directory }}
+        RUGSNARE_FAIL_ON_DRIFT: ${{ inputs.fail-on-drift }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: node "${{ github.action_path }}/pr-comment.mjs"
+      shell: bash
