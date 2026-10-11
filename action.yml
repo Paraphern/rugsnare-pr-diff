@@ -1,5 +1,5 @@
 name: 'RugSnare PR diff'
-description: 'Post a human-readable diff of MCP tool contracts (descriptions & schemas) on pull requests, so reviewers see the changed words, not hashes.'
+description: 'Post a human-readable diff of MCP tool contracts on pull requests: reviewers see the changed words, not hashes.'
 branding:
   icon: 'shield'
   color: 'orange'
