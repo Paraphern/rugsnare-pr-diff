@@ -15,7 +15,7 @@ inputs:
   rugsnare-ref:
     description: 'Which rugsnare version to run (used when use-workspace is false); pinned to a release tag, bump deliberately'
     required: false
-    default: 'v1.4.3'
+    default: 'v1.5.0'
   use-workspace:
     description: 'Use the rugsnare copy already present in the calling repository (for the rugsnare repo itself); default false = self-checkout'
     required: false
